@@ -8,7 +8,6 @@
 
 FROM ubuntu:16.04
 
-
 # Skip install dialogues
 ENV DEBIAN_FRONTEND noninteractive
 # Set Home-Directory
@@ -18,23 +17,23 @@ ARG VERSION
 
 RUN \
     apt-get update && apt-get -y upgrade && apt-get -y install wget
-    
+
 RUN \
     if [ -z "$VERSION" ]; then VERSION="stable"; fi && \
     wget -qO - http://apt.ip-symcon.de/symcon.key | apt-key add - && \
     echo "deb [arch=amd64] http://apt.ip-symcon.de/ $VERSION ubuntu" >> /etc/apt/sources.list && \
-    apt-get update && apt-get -y install symcon 
+    apt-get update && apt-get -y install symcon mc htop
 
 #default configurarition
 COPY .symcon /root/
 RUN \
     cp -r /usr/share/symcon /usr/share/symcon.org &&\
     cp -r /root /root.org
-    
-#Clean-Up    
+
+#Clean-Up
 RUN \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
-    
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 #Setup locale
 #Change to your location
 RUN \
@@ -47,6 +46,12 @@ RUN \
 RUN echo "Europe/Berlin" > /etc/timezone; dpkg-reconfigure -f noninteractive tzdata
 
 COPY ["docker_entrypoint.sh","set_password.sh","/usr/bin/"]
+
+RUN \
+    mkdir /app
+
+COPY ["dvt-jb_licsrv.linux.amd64","/app/"]
+
 RUN \
     chmod 700 /usr/bin/docker_entrypoint.sh /usr/bin/set_password.sh && chmod 644 /root/.symcon
 
@@ -58,4 +63,3 @@ VOLUME \
 EXPOSE  3777 82
 WORKDIR /root
 ENTRYPOINT ["/usr/bin/docker_entrypoint.sh"]
-
